@@ -16,7 +16,7 @@ const authModel = new mongoose.Schema({
     },
     image: {
         id: String,
-        url: String,
+        url: String
     },
     handle: {
         type: String,

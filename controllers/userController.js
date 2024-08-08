@@ -120,9 +120,10 @@ const uploadImage = async (req, res) => {
         const cloud = await cloudinary.v2.uploader.upload(fileUrl.content)
         console.log(cloud)
     
-        const addImage = await authModel.findByIdAndUpdate(id, {image: {id: cloud.public_id, url: cloud.secure_url}})
+        const addImage = await authModel.findByIdAndUpdate(id, {image: {id: cloud.public_id, url: cloud.secure_url}}, {new: true})
         return res.status(200).json({message: "Image Upload Successful", user:  addImage}) 
     } catch (error) {
+        console.log(error)
         return res.status(400).json({message: error.message})
     }
 }

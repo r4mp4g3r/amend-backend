@@ -16,6 +16,8 @@ const checkIsUserAuthenticated = async (req, res, next) => {
             } catch (error) {
                 return res.status(401).json({message: "Unauthorized User!"})
             }
+        } else {
+            return res.status(401).json({message: "Unauthorized User!"})
         }
     } catch (error) {
         return res.status(400).json({message: error.message})

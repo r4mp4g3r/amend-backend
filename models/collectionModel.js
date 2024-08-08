@@ -16,10 +16,11 @@ const collectionSchema = new mongoose.Schema({
         id: String,
         url: String,
     },
-    // handle: {
-    //     type: String,
-    //     required: true,
-    // },
+    handle: {
+        type: String,
+        required: true,
+        unqiue: true
+    },
     category: [
         {
             type: mongoose.Schema.Types.ObjectId,
