@@ -11,9 +11,9 @@ import connectDB from "./config/db.js";
 connectDB()
 
 cloudinary.config({ 
-    cloud_name: 'dfflk6oiq', 
-    api_key: '924287212334238', 
-    api_secret: 'I4JTW32UZGDX8o-JdRkp3yDmzeU' // Click 'View Credentials' below to copy your API secret
+    cloud_name: '', 
+    api_key: '', 
+    api_secret: '' // Click 'View Credentials' below to copy your API secret
 });
 
 app.use(cors())
