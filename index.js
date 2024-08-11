@@ -2,11 +2,13 @@ import express from "express";
 const app = express();
 import cloudinary from "cloudinary"
 import cors from "cors"
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001
 
 import userRoutes from "./routes/userRoute.js"
 import dashboardRoutes from "./routes/dashboardRoute.js"
 import connectDB from "./config/db.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 connectDB()
 
