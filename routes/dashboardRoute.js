@@ -1,17 +1,28 @@
 import express from "express";
 const router = express.Router();
 import uploadFile from "../middlewares/multer.js";
-import { checkCollectionHandle, createCollection, getAllCollections, getCollection, createCategory, createLink, getLink} from "../controllers/dashboardController.js";
+import { getPublic, getPublicCategory, getPublicLink, checkCollectionHandle, getCollection, createCollection, getCategories, getAllCollections, createCategory, createLink, getLinks, deleteCollection} from "../controllers/dashboardController.js";
 import { checkIsUserAuthenticated } from "../middlewares/isAuth.js";
 
 router.get("/collections", checkIsUserAuthenticated, getAllCollections)
 router.post("/create-collection", checkIsUserAuthenticated, uploadFile, createCollection)
-router.post("/collections/check-handle", checkIsUserAuthenticated, checkCollectionHandle)
-router.get("/collections/:handle", checkIsUserAuthenticated, getCollection)
+router.post("/check-collections-handle", checkIsUserAuthenticated, checkCollectionHandle)
+router.get("/collections/get-collection/:collectionId", checkIsUserAuthenticated, getCollection)
 
-router.post("/collections/:id/add-category", checkIsUserAuthenticated, createCategory)
+router.post("/collections/:collectionId/add-category", checkIsUserAuthenticated, createCategory)
+router.get("/collections/:collectionId", checkIsUserAuthenticated, getCategories)
+
+router.post("/collections/:collectionId/:categoryId", checkIsUserAuthenticated, createLink)
+router.get("/collections/:collectionId/:categoryId", checkIsUserAuthenticated, getLinks)
+
+router.delete("/collection/:collectionId", checkIsUserAuthenticated, deleteCollection)
+
+router.get("/public/:handle", getPublic)
+router.get("/public/category/:collectionId", getPublicCategory)
+router.get("/public/link/:categoryId", getPublicLink)
+
 // router.get("/collections/:id/", checkIsUserAuthenticated, getAllCategory)
-router.post("/collections/:id/:categoryId", checkIsUserAuthenticated, createLink)
-router.get("/collections/:id/:categoryId/:name", checkIsUserAuthenticated, getLink)
+// router.get("/collections/:handle/:categoryId", checkIsUserAuthenticated, getCollection)
+// router.get("/collections/:id/:categoryId/:name", checkIsUserAuthenticated, getLink)
 
 export default router;

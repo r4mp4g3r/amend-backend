@@ -1,17 +1,51 @@
 import categoryModel from "../models/categoryModel.js";
 import collectionModel from "../models/collectionModel.js"
+import linkModel from "../models/linkModel.js";
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary"
 
+const getPublic = async (req, res) => {
+    const {handle} = req.params;
+    try {
+        const data = await collectionModel.findOne({handle}).populate("category")
+        res.status(200).json(data)
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
+}
+
+const getPublicCategory = async (req, res) => {
+    const {collectionId} = req.params;
+    try {
+        const getAllCategory = await categoryModel.find({collectionId});
+        res.status(200).json(getAllCategory)
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
+}
+
+const getPublicLink = async (req, res) => {
+    const {categoryId} = req.params;
+    try {
+        if(categoryId === "undefined"){
+            console.log("hhhh");
+            return;
+        }
+        const getAllLink = await linkModel.find({categoryId})
+        res.json(getAllLink)
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
+}
+
 const checkCollectionHandle = async (req, res) => {
     const {handle} = req.body;
-    console.log(handle)
     try {
         if(!handle){
             return res.status(400).json({message: "All Fields are Required!"})
         }
         const checkHandle = await collectionModel.findOne({handle});
-        console.log(checkHandle)
+        
         if(checkHandle){
             return res.status(400).json({message: "Handle Not Available!"})
         } else {
@@ -35,27 +69,27 @@ const getAllCollections = async (req, res) => {
 
 const createCollection = async (req, res) => {
     const {name, type, handle } = req.body;
+    const lowerCaseHandle = handle.toLowerCase()
     console.log(req.body)
     console.log(req.file)
     try {
 
         if(req.file){
+            const checkHandle = await collectionModel.findOne({handle});
+            console.log("CHECK HANDLE", checkHandle)
+            if(checkHandle){
+                return res.status(400).json({message: "Handle not avaliable"})
+            }
+
             const file = req.file
             const fileUrl = getDataUrl(file)
             const cloud = await cloudinary.v2.uploader.upload(fileUrl.content)
 
-            const checkHandle = await collectionModel.findOne({handle});
-            console.log("CHECK HANDLE", checkHandle)
-
-            if(checkHandle){
-                return res.status(400).json({message: "Handle not avaliable"})
-            }
-        
             const newCollection = await collectionModel({
                 name,
                 type,
                 owner: req.user._id,
-                handle,
+                handle: lowerCaseHandle,
                 image: {
                     id: cloud.public_id,
                     url: cloud.secure_url
@@ -86,7 +120,7 @@ const createCollection = async (req, res) => {
             name,
             type,
             owner: req.user._id,
-            handle,
+            handle: lowerCaseHandle,
             image: {
                 id: "cpk5zpnxfo2b6svfc6or",
                 url: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1722951053/cpk5zpnxfo2b6svfc6or.jpg"
@@ -96,7 +130,7 @@ const createCollection = async (req, res) => {
         const resCollection = await newCollection.save()
 
         const data = await categoryModel({
-            categoryTitle: "Main",
+            categoryTitle: "main",
             owner: req.user._id,
             collectionId: resCollection._id
         })
@@ -127,9 +161,10 @@ const uploadImage = async (req, res) => {
 // ------------------------------------------------
 
 const getCollection = async (req, res) => {
-    const {handle} = req.params
+    const {collectionId} = req.params
     try {
-        const data = await collectionModel.findOne({handle}).populate("category")
+        // const data = await collectionModel.findOne({handle}).populate("category")
+        const data = await collectionModel.findById(collectionId)
         if(!data){
             return res.status(400).json({message: "Collection Not Found!"})
         }
@@ -140,8 +175,19 @@ const getCollection = async (req, res) => {
     }
 }
 
+const getCategories = async (req, res) => {
+    const {collectionId} = req.params;
+    console.log(collectionId)
+    try {
+        const getAllCategory = await categoryModel.find({collectionId});
+        res.status(200).json(getAllCategory)
+    } catch (error) {
+        return res.status(400).json({message: "Collection Not Found!"})
+    }
+}
+
 const createCategory = async (req, res) => {
-    const id = req.params.id;
+    const {collectionId} = req.params;
     const {title, imageId, imageUrl} = req.body;
 
     const userId = req.user._id
@@ -149,11 +195,12 @@ const createCategory = async (req, res) => {
         if(!title){
             return res.status(400).json({message: "All Fields are required"})
         }
-        const checkUser = await collectionModel.findById(id);
+        const checkUser = await collectionModel.findById(collectionId);
         if(userId.toString() == checkUser.owner.toString()){
             const data = await categoryModel({
                 categoryTitle: title.toLowerCase(),
                 owner: userId,
+                collectionId,
                 // image: {
                 //     id: imageId,
                 //     url: imageUrl
@@ -178,45 +225,71 @@ const createCategory = async (req, res) => {
 
 const createLink = async (req, res) => {
     const {title, description, url} = req.body;
-    const categoryId = req.params.categoryId;
-    console.log(req.body)
+    const {collectionId, categoryId} = req.params;
+
+    console.log(req.user)
+    
     try {
         if(!title || !url){
             return res.status(400).json({message: "All Fields are Required!"})
         }
-        const pushLinkToCategory = await categoryModel.findById(categoryId);
-        console.log(pushLinkToCategory)
-        pushLinkToCategory.info.push({
+
+        const data = await linkModel({
             title,
             description,
             url,
-            image: {
-                id: "fdkghdfjkhg",
-                url: "dskfjghsdf"
-            }
+            owner: req.user._id,
+            categoryId,
+            collectionId,  
         })
-
-        const linkSaved = await pushLinkToCategory.save()
-
-        res.status(200).json({message: "Link Added Successfully!", linkSaved})
+        console.log("ID")
+        const resData = await data.save()
+        res.json(resData)
     } catch (error) {
         return res.status(400).json({message: error.message})
     }
 }
 
-const getLink = async (req, res) => {
-    const {id, name} = req.params;
+const getLinks = async (req, res) => {
+    const {collectionId, categoryId} = req.params;
     try {
-        const data = await collectionModel.findById(id).populate("category")
-
-        console.log(data)
-
-        const selectedData = data.category.find(category => category.categoryTitle === name)
+        const data = await linkModel.find({categoryId}).sort({createdAt: -1})
         
-        return res.status(200).json(selectedData.info)
+        return res.status(200).json(data)
     } catch (error) {
         return res.status(400).json({message: error.message})
     }
 }
 
-export {checkCollectionHandle, getAllCollections, createCollection, getCollection, createCategory, createLink, getLink }
+// ---------------------Delete-----------------------------
+
+const deleteCollection = async (req, res) => {
+    const {collectionId} = req.params;
+    try {
+        const data = await collectionModel.findById(collectionId)
+        console.log(data.image.id)
+        // if(req.user._id.toString() === data.owner.toString()){
+        //     const deleteCollect = await collectionModel.deleteOne({_id: collectionId})
+        //     const deleteCategory = await categoryModel.deleteMany({collectionId})
+        //     const deleteLink = await linkModel.deleteMany({collectionId})
+
+        //     cloudinary.uploader.destroy(data.image.id, function(result) { console.log(result) })
+
+        //     return res.status(200).json({message: "Deleted Successfully!"})
+        // } else {
+        //     return res.status(400).json({message: "Unauthorized User!"})
+        // }
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
+}
+
+const deleteCategory = async (req, res) => {
+
+}
+
+const deleteLink = async (req, res) => {
+
+}
+
+export {getPublic, getPublicCategory, getPublicLink, checkCollectionHandle, getAllCollections, getCollection, createCollection, createCategory, createLink, getLinks, getCategories, deleteCollection, deleteCategory, deleteLink }

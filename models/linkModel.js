@@ -33,7 +33,7 @@ const linkSchema = new mongoose.Schema({
     }
 }, {timestamps: true})
 
-const linkModel = new mongoose.model("link", linkSchema)
+const linkModel = mongoose.model("link", linkSchema)
 
 export default linkModel;
 

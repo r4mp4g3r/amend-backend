@@ -15,8 +15,14 @@ const authModel = new mongoose.Schema({
         required: true,
     },
     image: {
-        id: String,
-        url: String
+        id: {
+            type: String,
+            default: "user_profile_p8ofmu"
+        },
+        url: {
+            type: String,
+            default: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1723648086/user_profile_p8ofmu.jpg"
+        }
     },
     handle: {
         type: String,
