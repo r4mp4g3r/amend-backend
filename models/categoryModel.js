@@ -5,10 +5,10 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    // image: {
-    //     id: String,
-    //     url: String,
-    // },
+    image: {
+        type: String,
+        default: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1723742238/icons/jdzzqnphwmd3cs55jky6.png"
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "auth",

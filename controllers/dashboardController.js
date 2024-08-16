@@ -40,11 +40,12 @@ const getPublicLink = async (req, res) => {
 
 const checkCollectionHandle = async (req, res) => {
     const {handle} = req.body;
+    const lowerCaseHandle = handle.toLowerCase()
     try {
         if(!handle){
             return res.status(400).json({message: "All Fields are Required!"})
         }
-        const checkHandle = await collectionModel.findOne({handle});
+        const checkHandle = await collectionModel.findOne({handle: lowerCaseHandle});
         
         if(checkHandle){
             return res.status(400).json({message: "Handle Not Available!"})
@@ -122,8 +123,8 @@ const createCollection = async (req, res) => {
             owner: req.user._id,
             handle: lowerCaseHandle,
             image: {
-                id: "cpk5zpnxfo2b6svfc6or",
-                url: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1722951053/cpk5zpnxfo2b6svfc6or.jpg"
+                id: "user_profile_p8ofmu",
+                url: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1723648086/user_profile_p8ofmu.jpg"
             }
         })
     
@@ -145,17 +146,66 @@ const createCollection = async (req, res) => {
     }
 }
 
-
-const uploadImage = async (req, res) => {
-    const {id, email} =  req.user;
-    try {
+const updateCollection = async (req, res) => {
+    const {name, type } = req.body;
+    const {id} = req.params;
     
+    // try {
+    //     if(req.file){
+    //         const file = req.file
+    //         const fileUrl = getDataUrl(file)
+    //         const cloud = await cloudinary.v2.uploader.upload(fileUrl.content)
+
+    //         const newCollection = await collectionModel({
+    //             name,
+    //             type,
+    //             image: {
+    //                 id: cloud.public_id,
+    //                 url: cloud.secure_url
+    //             }
+    //         })
         
-        
-        return res.status(200).json({message: "Image Upload Successful", user:  addImage}) 
-    } catch (error) {
-        return res.status(400).json({message: error.message})
-    }
+    //         const resCollection = await newCollection.save()
+
+    //         const data = await categoryModel({
+    //             categoryTitle: "main",
+    //             owner: req.user._id,
+    //             collectionId: resCollection._id
+    //         })
+    //         const resCategory = await data.save()
+    //         newCollection.category.push(resCategory._id)
+    //         await newCollection.save()
+
+    //         return res.status(200).json({message: "Collection created successfully!", collection: resCollection})
+    //     }
+
+    //     const newCollection = await collectionModel({
+    //         name,
+    //         type,
+    //         owner: req.user._id,
+    //         handle: lowerCaseHandle,
+    //         image: {
+    //             id: "user_profile_p8ofmu",
+    //             url: "https://res.cloudinary.com/dfflk6oiq/image/upload/v1723648086/user_profile_p8ofmu.jpg"
+    //         }
+    //     })
+    
+    //     const resCollection = await newCollection.save()
+
+    //     const data = await categoryModel({
+    //         categoryTitle: "main",
+    //         owner: req.user._id,
+    //         collectionId: resCollection._id
+    //     })
+    //     const resCategory = await data.save()
+    //     newCollection.category.push(resCategory._id)
+    //     await newCollection.save()
+
+    //     return res.status(200).json({message: "Collection created successfully!", collection: resCollection})
+
+    // } catch (error) {
+    //     return res.status(400).json({message: error.message})
+    // }
 }
 
 // ------------------------------------------------
@@ -188,7 +238,7 @@ const getCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
     const {collectionId} = req.params;
-    const {title, imageId, imageUrl} = req.body;
+    const {title, image} = req.body;
 
     const userId = req.user._id
     try {
@@ -201,10 +251,7 @@ const createCategory = async (req, res) => {
                 categoryTitle: title.toLowerCase(),
                 owner: userId,
                 collectionId,
-                // image: {
-                //     id: imageId,
-                //     url: imageUrl
-                // }
+                image
             })
             const resCategory = await data.save()
 
@@ -268,28 +315,68 @@ const deleteCollection = async (req, res) => {
     try {
         const data = await collectionModel.findById(collectionId)
         console.log(data.image.id)
-        // if(req.user._id.toString() === data.owner.toString()){
-        //     const deleteCollect = await collectionModel.deleteOne({_id: collectionId})
-        //     const deleteCategory = await categoryModel.deleteMany({collectionId})
-        //     const deleteLink = await linkModel.deleteMany({collectionId})
+        if(data.image.id === "user_profile_p8ofmu"){
 
-        //     cloudinary.uploader.destroy(data.image.id, function(result) { console.log(result) })
+            if(req.user._id.toString() === data.owner.toString()){
+                const deleteCollect = await collectionModel.deleteOne({_id: collectionId})
+                const deleteCategory = await categoryModel.deleteMany({collectionId})
+                const deleteLink = await linkModel.deleteMany({collectionId})
+    
+                return res.status(200).json({message: "Deleted Successfully!"})
+            } else {
+                return res.status(400).json({message: "Unauthorized User!"})
+            }
 
-        //     return res.status(200).json({message: "Deleted Successfully!"})
-        // } else {
-        //     return res.status(400).json({message: "Unauthorized User!"})
-        // }
+        } else {
+            if(req.user._id.toString() === data.owner.toString()){
+                const deleteCollect = await collectionModel.deleteOne({_id: collectionId})
+                const deleteCategory = await categoryModel.deleteMany({collectionId})
+                const deleteLink = await linkModel.deleteMany({collectionId})
+    
+                cloudinary.uploader.destroy(data.image.id, function(result) { console.log(result) })
+    
+                return res.status(200).json({message: "Deleted Successfully!"})
+            } else {
+                return res.status(400).json({message: "Unauthorized User!"})
+            }
+        }
+        
     } catch (error) {
         return res.status(400).json({message: error.message})
     }
 }
 
 const deleteCategory = async (req, res) => {
+    const {categoryId} = req.params;
 
+    try {
+        const getCategory = await categoryModel.findById(categoryId)
+        if(req.user._id.toString() === getCategory.owner.toString()){
+            const deleteCategory = await categoryModel.deleteOne({_id: categoryId})
+            const deleteLink = await linkModel.deleteMany({categoryId})
+            return res.status(200).json({message: "Deleted Successfully!"})
+        } else {
+            return res.status(400).json({message: "Unauthorized User!"})
+        }
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
 }
 
 const deleteLink = async (req, res) => {
+    const {linkId} = req.params;
 
+    try {
+        const getLink = await linkModel.findById(linkId)
+        if(req.user._id.toString() === getLink.owner.toString()){
+            const deleteLink = await linkModel.deleteOne({_id: linkId})
+            return res.status(200).json({message: "Deleted Successfully!"})
+        } else {
+            return res.status(400).json({message: "Unauthorized User!"})
+        }
+    } catch (error) {
+        return res.status(400).json({message: error.message})
+    }
 }
 
-export {getPublic, getPublicCategory, getPublicLink, checkCollectionHandle, getAllCollections, getCollection, createCollection, createCategory, createLink, getLinks, getCategories, deleteCollection, deleteCategory, deleteLink }
+export {getPublic, getPublicCategory, getPublicLink, checkCollectionHandle, getAllCollections, getCollection, createCollection, updateCollection, createCategory, createLink, getLinks, getCategories, deleteCollection, deleteCategory, deleteLink }
