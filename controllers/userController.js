@@ -3,6 +3,8 @@ import bcryptjs from "bcryptjs"
 import jwt from "jsonwebtoken"
 import getDataUrl from "../utils/urlGenerator.js";
 import cloudinary from "cloudinary"
+import crypto from "crypto";  // Import crypto for generating reset tokens
+import sendEmail from "../utils/sendEmail.js"; // Import your email sending utility
 
 const checkHandle = async (req, res) => {
     const {handle} = req.body;
@@ -128,4 +130,52 @@ const uploadImage = async (req, res) => {
     }
 }
 
-export {register, checkHandle, login, uploadImage}
+const requestResetPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await authModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
+        await user.save();
+
+        const resetLink = `http://yourfrontend.com/reset-password/${token}`;
+        await sendEmail(user.email, 'Password Reset Request', `Please click on the following link to reset your password: ${resetLink}`);
+
+        res.json({ message: "Password reset link sent to your email." });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    try {
+        const user = await authModel.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        const genSalt = await bcryptjs.genSalt(10);
+        user.password = await bcryptjs.hash(newPassword, genSalt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: "Password successfully reset." });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+export { register, checkHandle, login, uploadImage, requestResetPassword, resetPassword };
