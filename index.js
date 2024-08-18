@@ -8,6 +8,8 @@ import userRoutes from "./routes/userRoute.js";
 import dashboardRoutes from "./routes/dashboardRoute.js";
 import authRoutes from './routes/auth.js';
 import connectDB from "./config/db.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 connectDB();
 
