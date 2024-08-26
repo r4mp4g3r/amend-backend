@@ -50,3 +50,4 @@ router.post('/reset-password/:token', async (req, res) => {
     res.json({ message: 'Password successfully reset.' });
 });
 module.exports = router;
+export default router;

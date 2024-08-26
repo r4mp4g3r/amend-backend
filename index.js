@@ -6,8 +6,7 @@ const PORT = process.env.PORT || 5000;
 
 import userRoutes from "./routes/userRoute.js";
 import dashboardRoutes from "./routes/dashboardRoute.js";
-//import authRoutes from './routes/auth.js';
-const authRoutes = require('./routes/auth.js');
+import authRoutes from './routes/auth.js';
 import connectDB from "./config/db.js";
 import dotenv from 'dotenv';
 dotenv.config();
