@@ -2,9 +2,9 @@ import express from "express";
 import { checkHandle, register, login, uploadImage, requestResetPassword, resetPassword } from "../controllers/userController.js";
 import uploadFile from "../middlewares/multer.js";
 import { checkIsUserAuthenticated } from "../middlewares/isAuth.js";
-import Link from '../models/Link.js';
-import Category from '../models/Category.js';
-import Collection from '../models/Collection.js';
+import Link from '../models/linkModel.js';
+import Category from '../models/categoryModel.js';
+import Collection from '../models/collectionModel.js';
 
 const router = express.Router();
 
