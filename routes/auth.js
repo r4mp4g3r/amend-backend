@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-const crypto = require('crypto');
+import crypto from 'crypto';
 const User = require('../models/User'); 
 const sendEmail = require('../utils/sendEmail');
 
@@ -49,5 +49,5 @@ router.post('/reset-password/:token', async (req, res) => {
 
     res.json({ message: 'Password successfully reset.' });
 });
-module.exports = router;
+//module.exports = router;
 export default router;
