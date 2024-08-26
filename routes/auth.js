@@ -1,8 +1,10 @@
 import express from 'express';
 const router = express.Router();
 import crypto from 'crypto';
-const User = require('../models/User'); 
-const sendEmail = require('../utils/sendEmail');
+//const User = require('../models/User'); 
+import User from '../models/User';
+//const sendEmail = require('../utils/sendEmail');
+import sendEmail from '../utils/sendEmail';
 
 // Route to request password reset
 router.post('/request-reset-password', async (req, res) => {
